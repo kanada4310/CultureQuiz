@@ -48,7 +48,7 @@
   .feedback.bad{ background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.4); }
 
   .imgbox{ position:relative; border:1px solid #1b2441; border-radius:12px; overflow:hidden; background:#0b1329; }
-  .imgbox img{ display:block; width:100%; height:min(45vh, 340px); object-fit:contain; background:#0b1329; }
+  .imgbox img{ display:block; width:100%; height:min( 26vh, 200px); object-fit:contain; background:#0b1329; }
   .imgcap{ padding:8px 10px; color:var(--ink-d); font-size:.9rem; border-top:1px solid #1b2441; }
 
   .details{ background:#0d152b; border:1px solid #1b2441; border-radius:12px; padding:10px 12px; }
@@ -63,16 +63,14 @@
 
   /* Responsive */
   @media (max-width:900px){ .grid{ grid-template-columns:1fr; grid-template-areas:'aside' 'main'; } }
-  @media (max-width:760px){ .stats{ grid-template-columns:repeat(3,1fr); } .imgbox img{ height:min(40vh, 280px); } .input input{ font-size:16px; } }
-  @media (max-width:520px){
-    .q-core{ flex-direction:column; }
-    .input{ width:100%; display:grid; grid-template-columns:1fr; grid-template-rows:auto auto; row-gap:8px; padding:6px 10px; }
-    .input input{ font-size:16px; padding:8px 6px; line-height:1.25; }
-    .input button{ width:100%; }
-    .q-core .btn{ width:100%; }
-    .imgbox img{ height:min(38vh, 220px); }
+  @media (max-width:760px){$1.imgbox img{ height:min(24vh, 190px); } .input input{ font-size:16px; } }
+  @media (max-width:520px){$1.imgbox img{ height:min(20vh, 160px); }
     .btn,.file-label{ padding:10px 12px; border-radius:14px; }
   } .input{ width:100%; } .q-core .btn{ width:100%; } .imgbox img{ height:min(38vh, 220px); } .btn,.file-label{ padding:12px 14px; border-radius:14px; } }
+.problem{ background:#0d162f; border:1px solid #2a3b6b; border-radius:10px; padding:8px 10px; color:var(--ink-d); margin-bottom:8px; font-size:.9rem; }
+.problem b{ color:var(--ink); }
+.imgbadge{ position:absolute; top:6px; left:6px; background:#0e1630cc; border:1px solid var(--muted); color:var(--ink-d); font-size:11px; padding:2px 6px; border-radius:999px; }
+#hintBox{ display:none !important; }
 </style>
 </head>
 <body>
@@ -138,15 +136,11 @@
     </section>
 
     <aside class="card">
-      <h2>ビジュアル / 情報</h2>
-      <div class="problem" id="problemBox" style="background:#0d152b;border:1px solid #1b2441;border-radius:10px;padding:8px 10px;margin-bottom:8px;"><b>問題：</b> <span id="problemText"></span></div>
+      <div class="problem" id="problemBox" style="display:none"><b>問題：</b> <span id="problemText"></span></div>
       <div class="imgbox" id="imgBox" style="display:none">
-        <div id="imgBadge" class="badge" style="position:absolute;top:6px;left:6px;background:#0e1630;border:1px solid #223057;padding:2px 6px;font-size:12px;border-radius:8px;color:#cfe1ff;opacity:.9;display:none"></div>
+        <div class="imgbadge" id="imgBadge" style="display:none"></div>
         <img id="img" alt="関連画像" />
-        <div class="imgcap" id="imgCap" style="display:none"></div>
       </div>
-      
-      
     </aside>
   </div>
 
@@ -182,6 +176,7 @@
   const btnRestart=$('#btnRestart');
   const reinsert=$('#reinsert'), showImage=$('#showImage'), requireExact=$('#requireExact');
   const clearedCount=$('#clearedCount'), totalCount=$('#totalCount');
+  const problemBox=$('#problemBox'), problemText=$('#problemText'), imgBadge=$('#imgBadge');
 
   // ====== Utils ======
   function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
@@ -275,8 +270,7 @@
     })();
 
     // 入力
-    answerInput.value='';
-    quizArea.style.display='';
+    answerInput.value=''; answerInput.placeholder='用語（別名・読みも可）を入力'; quizArea.style.display='';
     $('#doneArea').style.display='none';
     answerInput.focus();
     renderStats();
