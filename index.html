@@ -3,120 +3,365 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>JSONデッキ対応クイズ｜反復出題（全問正解まで）</title>
+<title>JSONデッキ対応クイズ｜反復出題（修正版 v3）</title>
 <style>
   :root{
-    --bg: #0b1020;
-    --panel: #121a2e;
-    --panel-2:#0f1628;
-    --ink: #e6ecff;
-    --ink-dim:#b6c2e6;
-    --accent: #5b8cff;
-    --accent-2:#89a9ff;
-    --good:#22c55e;
-    --bad:#ef4444;
-    --warn:#f59e0b;
+    --bg:#0c1022; --panel:#121a2e; --panel2:#0f1628; --ink:#e6ecff; --ink-d:#bac7ee; --ac:#5b8cff; --ac2:#8bb0ff; --good:#22c55e; --bad:#ef4444; --muted:#223057;
   }
-  body{
-    margin:0; background:linear-gradient(180deg, var(--bg), #0a0f1a 55%);
-    color:var(--ink); font-family: system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
-  }
-  .wrap{ max-width: 1100px; margin:0 auto; padding:16px; display:grid; gap:16px; }
-  header{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
-  header h1{ font-size:clamp(18px,5vw,26px); margin:0; }
-  .toolbar{ display:flex; flex-wrap:wrap; gap:8px; }
-  .btn{ border:1px solid transparent; border-radius:12px; padding:10px 14px; font-weight:600; cursor:pointer; }
-  .btn{ background:var(--accent); color:#fff; }
-  .btn.secondary{ background:transparent; border-color:#2c3a63; color:var(--ink); }
-  .btn.good{ background:var(--good); color:#fff; }
-  .btn.bad{ background:var(--bad); color:#fff; }
+  html,body{height:100%}
+  body{margin:0; background:linear-gradient(180deg,var(--bg),#0a0f1a 55%); color:var(--ink); font-family: system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Sans","Noto Sans JP",Meiryo,sans-serif}
+  .wrap{ max-width:1000px; margin:0 auto; padding:20px; display:grid; gap:16px; }
+  header{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+  header h1{ margin:0; font-size:clamp(18px,2.6vw,26px); letter-spacing:.02em; }
+  .toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .btn{ appearance:none; border:1px solid transparent; background:var(--ac); color:#fff; padding:10px 14px; border-radius:12px; font-weight:700; cursor:pointer; }
+  .btn.secondary{ background:transparent; border-color:#2c3a63; }
+  .btn.ghost{ background:transparent; color:var(--ink-d); border-color:transparent; }
+  .btn.good{ background:var(--good); }
+  .btn.bad{ background:var(--bad); }
+  .file-label{ border:1px dashed #415184; padding:10px 12px; border-radius:12px; cursor:pointer; color:var(--ink-d); }
+  input[type=file]{ display:none; }
 
-  .grid{ display:grid; grid-template-columns:2fr 1fr; gap:16px; }
-  @media(max-width:768px){ .grid{ grid-template-columns:1fr; } }
+  .topbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .pill{ display:inline-flex; gap:8px; align-items:center; background:#0e1630; border:1px solid var(--muted); border-radius:12px; padding:8px 10px; color:var(--ink-d); }
 
-  .card{ background:linear-gradient(180deg,var(--panel),var(--panel-2)); border:1px solid #1b2441; border-radius:16px; padding:16px; }
-  .hint{ background:#0d162f; border:1px dashed #2a3b6b; border-radius:12px; padding:10px 12px; margin-bottom:10px; }
-  .feedback{ margin-top:10px; padding:10px 12px; border-radius:12px; border:1px solid #263461; }
+  .grid{ display:grid; grid-template-columns:1.1fr .9fr; gap:16px; align-items:start; }
+  .card{ background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid #1b2441; border-radius:16px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.25); }
+
+  .stats{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .stat{ background:#0e1630; border:1px solid #1b2441; border-radius:12px; padding:10px; text-align:center; }
+  .stat .n{ font-weight:800; font-size:20px; }
+  progress{ width:100%; height:10px; border:0; border-radius:999px; overflow:hidden; background:#0f1936; }
+  progress::-webkit-progress-bar{ background:#0f1936; }
+  progress::-webkit-progress-value{ background:linear-gradient(90deg,var(--ac),var(--ac2)); border-radius:999px; }
+
+  .q-title{ font-size:14px; color:var(--ink-d); margin:0 0 6px; }
+  .q-core{ display:flex; gap:10px; align-items:stretch; flex-wrap:wrap; margin-top:6px; }
+  .input{ display:flex; flex:1; gap:8px; align-items:center; background:#0e1630; border:1px solid var(--muted); border-radius:12px; padding:10px 12px; }
+  .input input{ flex:1; font-size:18px; padding:6px 2px; color:var(--ink); background:transparent; border:0; outline:none; }
+  .hint{ background:#0d162f; border:1px dashed #2a3b6b; border-radius:12px; padding:10px 12px; color:var(--ink-d); }
+
+  .feedback{ margin-top:10px; padding:10px 12px; border-radius:12px; border:1px solid #263461; display:none; }
   .feedback.good{ background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.4); }
   .feedback.bad{ background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.4); }
-  .imgbox{ border:1px solid #1b2441; border-radius:12px; overflow:hidden; background:#0b1329; margin-bottom:10px; }
-  .imgbox img{ width:100%; height:min(45vh, 320px); object-fit:contain; display:block; background:#0b1329; }
-  .imgbox .imgcap{ padding:8px 10px; color:var(--ink-dim); font-size:.9rem; border-top:1px solid #1b2441; }
-  @media(max-width:768px){ .imgbox img{ height:min(40vh, 260px); } }
+
+  .imgbox{ border:1px solid #1b2441; border-radius:12px; overflow:hidden; background:#0b1329; }
+  .imgbox img{ display:block; width:100%; height:min(45vh, 340px); object-fit:contain; background:#0b1329; }
+  .imgcap{ padding:8px 10px; color:var(--ink-d); font-size:.9rem; border-top:1px solid #1b2441; }
+
+  .details{ background:#0d152b; border:1px solid #1b2441; border-radius:12px; padding:10px 12px; }
+  .details summary{ cursor:pointer; color:var(--ink-d); }
+  .desc p{ margin:.4em 0; }
+  .tag{ display:inline-block; font-size:.82rem; color:#cfe1ff; background:#122045; padding:2px 8px; border-radius:999px; margin-right:8px; }
+
+  .dropzone{ border:1px dashed #3b4c7d; border-radius:12px; padding:16px; text-align:center; background:rgba(255,255,255,.02); }
+  .dropzone.dragover{ background:rgba(91,140,255,.12); border-color:var(--ac); }
+
+  .footer{ color:#9fb0dd; font-size:.85rem; text-align:center; }
+
+  /* Responsive */
+  @media (max-width:900px){ .grid{ grid-template-columns:1fr; } }
+  @media (max-width:760px){ .stats{ grid-template-columns:repeat(3,1fr); } .imgbox img{ height:min(40vh, 280px); } .input input{ font-size:16px; } }
+  @media (max-width:520px){ .q-core{ flex-direction:column; } .input{ width:100%; } .q-core .btn{ width:100%; } .imgbox img{ height:min(38vh, 220px); } .btn,.file-label{ padding:12px 14px; border-radius:14px; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>JSONデッキ対応・クイズ（反復出題）</h1>
+    <h1>JSONデッキ対応・クイズ（修正版 v3）</h1>
     <div class="toolbar">
-      <label class="btn secondary" for="file">JSONをアップロード</label>
-      <input id="file" type="file" accept="application/json" style="display:none" />
+      <label class="file-label" for="file">JSONをアップロード</label>
+      <input id="file" type="file" accept="application/json" />
       <button class="btn secondary" id="btnSample">サンプル読込</button>
+      <button class="btn ghost" id="btnReset">進捗リセット</button>
     </div>
   </header>
+
+  <section class="card">
+    <div class="topbar">
+      <div class="pill">クリア: <b id="clearedCount">0</b> / <span id="totalCount">0</span></div>
+      <div class="pill"><span>再出題間隔</span><input type="number" id="reinsert" min="1" max="10" value="3" style="width:64px"></div>
+      <label class="pill" style="gap:8px"><input type="checkbox" id="showImage" checked>画像を表示</label>
+      <label class="pill" style="gap:8px"><input type="checkbox" id="requireExact">完全一致</label>
+      <div style="align-self:center;color:var(--ink-d);font-size:.9rem">Enterで解答</div>
+    </div>
+    <div class="stats" style="margin-top:8px">
+      <div class="stat"><div class="n" id="stTotal">0</div><div>総カード</div></div>
+      <div class="stat"><div class="n" id="stRemaining">0</div><div>残り</div></div>
+      <div class="stat"><div class="n" id="stCorrect">0</div><div>正解</div></div>
+      <div class="stat"><div class="n" id="stWrong">0</div><div>再出題待ち</div></div>
+      <div class="stat"><div class="n" id="stProgress">0%</div><div>進捗</div></div>
+    </div>
+    <div style="margin-top:8px"><progress id="prog" max="100" value="0"></progress></div>
+  </section>
 
   <div class="grid">
     <section class="card">
       <h2 id="qHeader">デッキ未読込</h2>
-      $1
-
-      <div id="clearedBar" style="color:#b6c2e6;margin:6px 0 8px">クリア: <b id="clearedCount">0</b> / <span id="totalCount">0</span></div>
+      <p id="deckSub" style="color:var(--ink-d)">上のボタンからJSONを読み込んでください。</p>
 
       <div id="quizArea" style="display:none">
+        <div class="q-title">問題</div>
         <div class="hint" id="hintBox"></div>
-        <input id="answer" type="text" placeholder="ここに解答を入力" style="width:100%;padding:8px;font-size:16px;" />
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn" id="btnSubmit">解答</button>
-          <button class="btn secondary" id="btnSkip">スキップ</button>
-              <button class="btn good" id="btnNext" style="display:none">次の問題へ</button>
+        <div class="q-core">
+          <div class="input" style="flex:1 1 420px">
+            <input id="answer" type="text" placeholder="ここに解答（用語）を入力" list="termsList" autocomplete="off"/>
+            <datalist id="termsList"></datalist>
+            <button class="btn" id="btnSubmit">解答</button>
+          </div>
+          <button class="btn secondary" id="btnSkip" title="後で出題">スキップ</button>
+          <button class="btn good" id="btnNext" style="display:none">次の問題へ</button>
         </div>
-        <div id="feedback" class="feedback" style="display:none"></div>
-        <details id="detailsBox" style="margin-top:12px; display:none">
+        <div id="feedback" class="feedback"></div>
+        <details id="detailsBox" class="details" style="display:none;margin-top:12px">
           <summary>解説を表示</summary>
-          <div id="desc"></div>
+          <div class="desc" id="desc"></div>
         </details>
-        
       </div>
 
       <div id="doneArea" style="display:none">
         <h2>全問正解！</h2>
+        <p style="color:var(--ink-d)">おつかれさま。デッキをシャッフルして最初から始められます。</p>
         <button class="btn good" id="btnRestart">もう一度</button>
       </div>
+
+      <div class="dropzone" id="dropzone" style="margin-top:12px">ここにJSONをドラッグ＆ドロップできます</div>
     </section>
 
-    <aside class="card" id="right">
-      <h2>情報</h2>
-      <div class="imgbox" id="imgBox" style="display:none"><img id="img" alt="関連画像" /><div class="imgcap" id="imgCap"></div></div>
-      <div id="miniDesc"></div>
+    <aside class="card">
+      <h2>ビジュアル / 情報</h2>
+      <div class="imgbox" id="imgBox" style="display:none">
+        <img id="img" alt="関連画像" />
+        <div class="imgcap" id="imgCap"></div>
+      </div>
+      <details open class="details" style="margin-top:12px">
+        <summary>要点</summary>
+        <div class="desc" id="miniDesc"></div>
+      </details>
+      <details class="details" style="margin-top:8px">
+        <summary>比較の視点</summary>
+        <div class="desc" id="cmp"></div>
+      </details>
     </aside>
   </div>
+
+  <footer class="footer">あなたのテンプレート項目名に準拠。配列 or {cards:[...]} のどちらでも読込可。</footer>
 </div>
 
 <script>
 (function(){
-  const state={deck:[],queue:[],current:null,correct:0,cleared:new Set()};
-  $1
-  const clearedCount = document.getElementById('clearedCount');
-  const totalCount = document.getElementById('totalCount');
-  function renderCleared(){ if(totalCount){ totalCount.textContent = state.deck.length; } if(clearedCount){ clearedCount.textContent = state.cleared.size; } }
-  function setDeck(arr){ state.deck=arr.map((d,i)=>({...d,_id:i})); state.queue=[...state.deck.map(d=>d._id)]; state.cleared = new Set(); renderCleared(); nextQuestion(); })); state.queue=[...state.deck.map(d=>d._id)]; nextQuestion(); }
-  function nextQuestion(){ if(state.queue.length===0){ $('#quizArea').style.display='none'; $('#doneArea').style.display='block'; return; }
-    state.current=state.queue.shift(); const item=state.deck.find(d=>d._id===state.current);
-    $('#qHeader').textContent='この用語は？'; $('#deckSub').textContent='';
-    (function(){ try{ const box=document.getElementById('imgBox'); if(!box) return; const i=document.getElementById('img'); const cap=document.getElementById('imgCap'); const im=item&&item.image; if(im && (im.commonsTitle||im.url)){ const url= im.commonsTitle ? ('https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(String(im.commonsTitle).replace(/^File:/,''))+'?width=1200') : im.url; i.src=url; i.alt=im.note||'関連画像'; cap.textContent= im.note || (String(im.commonsTitle||'').replace(/^File:/,'')); box.style.display='block'; } else { box.style.display='none'; } }catch(_){} })();
-    renderCleared();
-    $('#hintBox').textContent=item.hint||'';
-    $('#answer').value=''; document.getElementById('btnNext').style.display='none'; $('#feedback').style.display='none'; $('#detailsBox').style.display='none'; $('#btnNext').style.display='none';
-    $('#quizArea').style.display='block'; }
-  function onSubmit(){ const item=state.deck.find(d=>d._id===state.current); const ans=$('#answer').value.trim();
-    if(ans && (ans===item.term || (item.aliases||[]).includes(ans))){ $('#feedback').className='feedback good'; $('#feedback').textContent='正解！ '+item.term; state.cleared.add(state.current); renderCleared(); }
-    else { $('#feedback').className='feedback bad'; $('#feedback').textContent='不正解… 正答は '+item.term; state.queue.push(state.current); }
-    $('#feedback').style.display='block'; $('#detailsBox').style.display='block'; $('#desc').textContent=item.background||''; document.getElementById('btnNext').style.display='inline-block'; $('#btnNext').style.display='inline-block'; }
-  $('#btnSubmit').addEventListener('click',onSubmit); $('#btnSkip').addEventListener('click',()=>{ const item=state.deck.find(d=>d._id===state.current); $('#feedback').className='feedback bad'; $('#feedback').textContent='スキップ：正答は '+(item ? item.term : ''); $('#feedback').style.display='block'; $('#detailsBox').style.display='block'; $('#desc').textContent=item && item.background ? item.background : ''; state.queue.push(state.current); document.getElementById('btnNext').style.display='inline-block'; }); $('#btnNext').addEventListener('click',nextQuestion);
-  $('#btnRestart').addEventListener('click',()=>setDeck(state.deck));
-  $('#file').addEventListener('change',async e=>{const f=e.target.files[0]; if(!f)return; const txt=await f.text(); setDeck(JSON.parse(txt));});
-  $('#btnSample').addEventListener('click',()=>{setDeck([{term:"飛鳥文化",aliases:["あすかぶんか"],hint:"日本最初の仏教文化、飛鳥寺が中心",background:"百済から仏教が公伝し寺院建築が盛んになった。"}]);});
+  // ====== State ======
+  const state = {
+    deck: [],
+    queue: [], // 出題キュー（indexの配列）
+    current: null,
+    total: 0,
+    correct: 0,
+    wrong: 0,
+    cleared: new Set(), // 一度でも正解した index
+    reinsertGap: 3,
+    requireExact: false,
+  };
+
+  // ====== DOM helpers ======
+  const $ = (s)=>document.querySelector(s);
+  const el=(t,a={},c=[])=>{const e=document.createElement(t);for(const[k,v]of Object.entries(a)){if(k==='class')e.className=v;else if(k==='html')e.innerHTML=v;else e.setAttribute(k,v)}c.forEach(x=>e.appendChild(x));return e};
+  const stTotal=$('#stTotal'), stRemaining=$('#stRemaining'), stCorrect=$('#stCorrect'), stWrong=$('#stWrong'), stProgress=$('#stProgress'), prog=$('#prog');
+  const qHeader=$('#qHeader'), deckSub=$('#deckSub'), quizArea=$('#quizArea');
+  const answerInput=$('#answer'), termsList=$('#termsList');
+  const btnSubmit=$('#btnSubmit'), btnSkip=$('#btnSkip'), btnNext=$('#btnNext');
+  const feedback=$('#feedback'), detailsBox=$('#detailsBox'), descBox=$('#desc'), hintBox=$('#hintBox');
+  const miniDesc=$('#miniDesc'), cmp=$('#cmp'), imgBox=$('#imgBox'), img=$('#img'), imgCap=$('#imgCap');
+  const btnRestart=$('#btnRestart');
+  const reinsert=$('#reinsert'), showImage=$('#showImage'), requireExact=$('#requireExact');
+  const clearedCount=$('#clearedCount'), totalCount=$('#totalCount');
+
+  // ====== Utils ======
+  function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+  function normalizeAnswer(s){ if(state.requireExact) return (s||'').trim(); const rm=/[\s\u3000\-―—–_・『』「」“”"'\(\)\[\]{}：:、，。,.]/g; return (s||'').normalize('NFKC').toLowerCase().replace(rm,'').trim(); }
+  function buildAcceptedForms(item){ const base=[item.term,...(Array.isArray(item.aliases)?item.aliases:[])].filter(Boolean); return base.map(normalizeAnswer).filter(Boolean); }
+  function commonsUrl(title){ if(!title) return null; const name=String(title).replace(/^File:/i,''); return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(name)}?width=1200`; }
+  function escapeHtml(s){ return String(s??'').replace(/[&<>\"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m])); }
+
+  // ====== Renderers ======
+  function renderStats(){
+    stTotal.textContent = state.total;
+    stCorrect.textContent = state.correct;
+    stWrong.textContent = state.wrong;
+    stRemaining.textContent = state.queue.length + (state.current!=null?1:0);
+    const pct = state.total? Math.round(100 * state.cleared.size / state.total) : 0;
+    stProgress.textContent = pct + '%';
+    prog.value = pct;
+    if(clearedCount) clearedCount.textContent = state.cleared.size;
+    if(totalCount) totalCount.textContent = state.total;
+  }
+
+  function setDeck(data){
+    // 正規化
+    state.deck = data.map((d,i)=>({ ...d, _id:i }));
+    state.total = state.deck.length;
+    state.correct = 0; state.wrong = 0; state.cleared.clear();
+    state.queue = shuffle(state.deck.map(d=>d._id));
+
+    // datalist
+    termsList.innerHTML='';
+    for(const item of state.deck){
+      const forms=[item.term, ...(item.aliases||[])].filter(Boolean);
+      for(const f of forms){ termsList.appendChild(el('option',{value:f})) }
+    }
+
+    nextQuestion();
+  }
+
+  function nextQuestion(){
+    // リセットUI
+    feedback.style.display='none'; feedback.className='feedback'; feedback.textContent='';
+    detailsBox.style.display='none'; detailsBox.open=false; descBox.innerHTML='';
+    btnNext.style.display='none';
+
+    if(state.queue.length===0){
+      quizArea.style.display='none';
+      $('#doneArea').style.display='block';
+      qHeader.textContent='セッション完了';
+      deckSub.textContent='全問に正解しました';
+      renderStats();
+      return;
+    }
+
+    state.current = state.queue.shift();
+    const item = state.deck.find(d=>d._id===state.current);
+
+    qHeader.textContent = 'この用語は？';
+    deckSub.textContent = '別名・読みも可';
+
+    // ヒント（最初から表示）
+    if(item.hint){ hintBox.innerHTML = `<b>ヒント：</b> ${escapeHtml(item.hint)}`; hintBox.style.display=''; } else { hintBox.innerHTML=''; hintBox.style.display='none'; }
+
+    // 右パネル
+    miniDesc.innerHTML='';
+    if(item.background) miniDesc.appendChild(el('p',{html:`<span class="tag">背景</span>${escapeHtml(item.background)}`}));
+    if(item.impact)     miniDesc.appendChild(el('p',{html:`<span class="tag">影響</span>${escapeHtml(item.impact)}`}));
+    if(item.academic_value) miniDesc.appendChild(el('p',{html:`<span class="tag">学術的価値</span>${escapeHtml(item.academic_value)}`}));
+
+    cmp.innerHTML='';
+    if(item.comparison){
+      const {previous,contemporary,next} = item.comparison;
+      if(previous)     cmp.appendChild(el('p',{html:`<span class="tag">前代</span>${escapeHtml(previous)}`}));
+      if(contemporary) cmp.appendChild(el('p',{html:`<span class="tag">同時代</span>${escapeHtml(contemporary)}`}));
+      if(next)         cmp.appendChild(el('p',{html:`<span class="tag">次代</span>${escapeHtml(next)}`}));
+    }
+
+    // 画像（containで全体表示）
+    if(showImage.checked && item.image && (item.image.commonsTitle || item.image.url)){
+      const url = item.image.url || commonsUrl(item.image.commonsTitle);
+      if(url){ img.src=url; img.alt=item.image.note||'関連画像'; imgCap.textContent = item.image.note || String(item.image.commonsTitle||'').replace(/^File:/,''); imgBox.style.display='block'; }
+      else { imgBox.style.display='none'; }
+    } else { imgBox.style.display='none'; }
+
+    // 解説（詳細）
+    descBox.innerHTML='';
+    const mkP=(label,text)=> text? el('p',{html:`<span class="tag">${label}</span>${escapeHtml(text)}`}):null;
+    [['背景',item.background],['影響',item.impact],['学術的価値',item.academic_value]].forEach(([lb,tx])=>{ if(tx) descBox.appendChild(mkP(lb,tx)); });
+
+    // 入力
+    answerInput.value='';
+    quizArea.style.display='';
+    $('#doneArea').style.display='none';
+    answerInput.focus();
+    renderStats();
+  }
+
+  function onSubmit(){
+    if(state.current==null) return;
+    const item = state.deck.find(d=>d._id===state.current);
+    const userRaw = answerInput.value;
+    if(!userRaw){ answerInput.focus(); return; }
+
+    const accepted = buildAcceptedForms(item);
+    const ok = state.requireExact ? accepted.some(a=>a===userRaw.trim()) : accepted.includes(normalizeAnswer(userRaw));
+
+    if(ok){
+      state.correct += 1;
+      state.cleared.add(item._id);
+      feedback.className='feedback good';
+      feedback.innerHTML = `正解！ → <b>${escapeHtml(item.term)}</b>`;
+      feedback.style.display='block';
+      detailsBox.style.display='block';
+      btnNext.style.display='inline-block';
+    } else {
+      state.wrong += 1;
+      const a=[item.term,...(item.aliases||[])].filter(Boolean).join(' / ');
+      feedback.className='feedback bad';
+      feedback.innerHTML = `不正解… 正答は <b>${escapeHtml(a)}</b>`;
+      feedback.style.display='block';
+      detailsBox.style.display='block';
+      // 何問か後に再出題
+      const gap = Math.max(1, parseInt(reinsert.value||state.reinsertGap,10));
+      const pos = Math.min(state.queue.length, gap-1);
+      state.queue.splice(pos, 0, state.current);
+      btnNext.style.display='inline-block';
+    }
+    renderStats();
+  }
+
+  function onSkip(){
+    if(state.current==null) return;
+    const item = state.deck.find(d=>d._id===state.current);
+    const a=[item.term,...(item.aliases||[])].filter(Boolean).join(' / ');
+    feedback.className='feedback bad';
+    feedback.innerHTML=`スキップ：正答は <b>${escapeHtml(a)}</b>`;
+    feedback.style.display='block';
+    detailsBox.style.display='block';
+    const gap = Math.max(1, parseInt(reinsert.value||state.reinsertGap,10));
+    const pos = Math.min(state.queue.length, gap-1);
+    state.queue.splice(pos, 0, state.current);
+    btnNext.style.display='inline-block';
+    renderStats();
+  }
+
+  // ====== Events ======
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && document.activeElement===answerInput){ e.preventDefault(); onSubmit(); }});
+  btnSubmit.addEventListener('click', onSubmit);
+  btnSkip.addEventListener('click', onSkip);
+  btnNext.addEventListener('click', ()=>{ state.current=null; nextQuestion(); });
+  $('#btnReset').addEventListener('click', ()=>{ if(state.deck.length===0) return; if(confirm('進捗をリセットして最初からやり直しますか？')){ setDeck(state.deck); }});
+  $('#btnRestart').addEventListener('click', ()=>{ if(state.deck.length>0) setDeck(state.deck); });
+  reinsert.addEventListener('change', ()=>{ state.reinsertGap = Math.max(1, parseInt(reinsert.value||3,10)); });
+  showImage.addEventListener('change', ()=>{ nextQuestion(); });
+  requireExact.addEventListener('change', ()=>{ state.requireExact = requireExact.checked; });
+
+  // ====== File load & DnD ======
+  const fileInput=$('#file');
+  fileInput.addEventListener('change', onFile);
+  async function onFile(e){
+    const f=e.target.files?.[0]; if(!f) return; await loadFromFile(f); fileInput.value=''; }
+
+  const dropzone=$('#dropzone');
+  ;['dragenter','dragover'].forEach(evt=> dropzone.addEventListener(evt,(ev)=>{ ev.preventDefault(); dropzone.classList.add('dragover'); }));
+  ;['dragleave','drop'].forEach(evt=> dropzone.addEventListener(evt,(ev)=>{ ev.preventDefault(); dropzone.classList.remove('dragover'); }));
+  dropzone.addEventListener('drop', async (e)=>{ const f=e.dataTransfer.files?.[0]; if(!f) return; await loadFromFile(f); });
+
+  async function loadFromFile(file){
+    try{
+      const txt = await file.text();
+      const json = JSON.parse(txt);
+      const arr = Array.isArray(json) ? json : (json.cards || []);
+      if(!Array.isArray(arr) || arr.length===0) throw new Error('配列の形でカードが見つかりません');
+      setDeck(arr);
+    }catch(err){
+      alert('JSONの読み込みに失敗しました: '+ (err?.message||String(err)));
+      console.error(err);
+    }
+  }
+
+  // ====== Sample ======
+  $('#btnSample').addEventListener('click', ()=>{
+    const sample=[
+      {"term":"飛鳥文化","aliases":["あすかぶんか"],"hint":"日本最初の仏教文化、飛鳥寺が中心","background":"百済から仏教が公伝し、豪族が受容を進めたことで寺院建築や仏像彫刻が盛んになった。","impact":"のちの白鳳文化や天平文化の基礎となり、日本の仏教芸術の源流となった。","academic_value":"外来文化の受容と変容を理解する上で重要。","comparison":{"previous":"古墳文化の呪術的性格に対し、体系的な宗教・思想に基づく文化。","contemporary":"初唐・三国の影響を受けつつ独自化。","next":"白鳳文化へ発展し国家仏教を強化。"},"image":{"commonsTitle":"File:Horyu-ji, November 2016.jpg","note":"法隆寺金堂と五重塔"}},
+      {"term":"白鳳文化","aliases":["はくほうぶんか"],"hint":"天智・天武期、初唐影響、薬師寺東塔","background":"律令制確立の過程で唐風の制度・文化が積極的に摂取。","impact":"仏教美術の洗練が進み奈良時代へ接続。","academic_value":"国際交流と国家形成の文化的側面を示す。","comparison":{"previous":"飛鳥文化より写実性・装飾性が増す。","contemporary":"初唐の潮流と並行。","next":"天平文化で規模・荘厳さが増大。"},"image":{"commonsTitle":"File:Yakushiji East Tower.jpg","note":"薬師寺東塔"}}
+    ];
+    setDeck(sample);
+  });
 })();
 </script>
 </body>
