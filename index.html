@@ -3,152 +3,152 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>JSONデッキ対応クイズ｜v4（モバイル最適化）</title>
+<title>JSONデッキ対応クイズ｜反復出題（修正版 v3）</title>
 <style>
   :root{
     --bg:#0c1022; --panel:#121a2e; --panel2:#0f1628; --ink:#e6ecff; --ink-d:#bac7ee; --ac:#5b8cff; --ac2:#8bb0ff; --good:#22c55e; --bad:#ef4444; --muted:#223057;
   }
   html,body{height:100%}
   body{margin:0; background:linear-gradient(180deg,var(--bg),#0a0f1a 55%); color:var(--ink); font-family: system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Sans","Noto Sans JP",Meiryo,sans-serif}
-  .wrap{ max-width:1000px; margin:0 auto; padding:12px; display:grid; gap:12px; }
-  header{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; }
-  header h1{ margin:0; font-size:clamp(16px,2.2vw,22px); letter-spacing:.02em; }
-  .btn{ appearance:none; border:1px solid transparent; background:var(--ac); color:#fff; padding:9px 12px; border-radius:12px; font-weight:700; cursor:pointer; }
-  .btn.secondary{ background:transparent; border-color:#2c3a63; color:var(--ink-d); }
+  .wrap{ max-width:1000px; margin:0 auto; padding:20px; display:grid; gap:16px; }
+  header{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+  header h1{ margin:0; font-size:clamp(18px,2.6vw,26px); letter-spacing:.02em; }
+  .toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .btn{ appearance:none; border:1px solid transparent; background:var(--ac); color:#fff; padding:10px 14px; border-radius:12px; font-weight:700; cursor:pointer; }
+  .btn.secondary{ background:transparent; border-color:#2c3a63; }
   .btn.ghost{ background:transparent; color:var(--ink-d); border-color:transparent; }
   .btn.good{ background:var(--good); }
   .btn.bad{ background:var(--bad); }
-  .file-label{ border:1px dashed #415184; padding:9px 12px; border-radius:12px; cursor:pointer; color:var(--ink-d); }
+  .file-label{ border:1px dashed #415184; padding:10px 12px; border-radius:12px; cursor:pointer; color:var(--ink-d); }
   input[type=file]{ display:none; }
 
-  .grid{ display:grid; grid-template-columns:.9fr 1.1fr; grid-template-areas:'aside main'; gap:12px; align-items:start; }
+  .topbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .pill{ display:inline-flex; gap:8px; align-items:center; background:#0e1630; border:1px solid var(--muted); border-radius:12px; padding:8px 10px; color:var(--ink-d); }
+
+  .grid{ display:grid; grid-template-columns:.9fr 1.1fr; grid-template-areas:'aside main'; gap:16px; align-items:start; }
   .grid > section{ grid-area: main; }
   .grid > aside{ grid-area: aside; }
+  .card{ background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid #1b2441; border-radius:16px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.25); }
 
-  .card{ background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid #1b2441; border-radius:16px; padding:12px; box-shadow:0 10px 30px rgba(0,0,0,.25); }
-
-  /* stats: 一段・小さめ */
-  .stats{ display:flex; gap:6px; align-items:center; flex-wrap:nowrap; overflow:hidden; }
-  .stat{ background:transparent; border:0; border-radius:8px; padding:2px 4px; text-align:center; }
-  .stat .n{ font-weight:800; font-size:13px; }
-  .stat .label{ font-size:11px; color:var(--ink-d); }
-  progress{ width:100%; height:6px; border:0; border-radius:999px; overflow:hidden; background:#0f1936; }
+  .stats{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .stat{ background:#0e1630; border:1px solid #1b2441; border-radius:12px; padding:10px; text-align:center; }
+  .stat .n{ font-weight:800; font-size:20px; }
+  progress{ width:100%; height:10px; border:0; border-radius:999px; overflow:hidden; background:#0f1936; }
   progress::-webkit-progress-bar{ background:#0f1936; }
   progress::-webkit-progress-value{ background:linear-gradient(90deg,var(--ac),var(--ac2)); border-radius:999px; }
 
-  .q-title{ font-size:13px; color:var(--ink-d); margin:0 0 6px; }
-  .hint{ background:#0d162f; border:1px dashed #2a3b6b; border-radius:10px; padding:8px 10px; color:var(--ink-d); }
+  .q-title{ font-size:14px; color:var(--ink-d); margin:0 0 6px; }
+  .q-core{ display:flex; gap:10px; align-items:stretch; flex-wrap:wrap; margin-top:6px; }
+  .input{ display:flex; flex:1; gap:8px; align-items:center; background:#0e1630; border:1px solid var(--muted); border-radius:12px; padding:10px 12px; }
+  .input input{ flex:1; font-size:18px; padding:6px 2px; color:var(--ink); background:transparent; border:0; outline:none; }
+  .hint{ background:#0d162f; border:1px dashed #2a3b6b; border-radius:12px; padding:10px 12px; color:var(--ink-d); }
 
-  /* 入力エリア：縦方向を薄く */
-  .input{ display:flex; flex:1; align-items:center; background:#0e1630; border:1px solid var(--muted); border-radius:12px; padding:4px 8px; }
-  .input input{ flex:1; font-size:16px; padding:6px 4px; line-height:1.25; color:var(--ink); background:transparent; border:0; outline:none; }
-
-  .feedback{ margin-top:8px; padding:8px 10px; border-radius:10px; border:1px solid #263461; display:none; }
+  .feedback{ margin-top:10px; padding:10px 12px; border-radius:12px; border:1px solid #263461; display:none; }
   .feedback.good{ background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.4); }
   .feedback.bad{ background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.4); }
 
-  .imgbox{ border:1px solid #1b2441; border-radius:12px; overflow:hidden; background:#0b1329; }
-  .imgbox img{ display:block; width:100%; height:min(30vh, 240px); object-fit:contain; background:#0b1329; }
-  .imgcap{ padding:6px 8px; color:var(--ink-d); font-size:.85rem; border-top:1px solid #1b2441; }
+  .imgbox{ position:relative; border:1px solid #1b2441; border-radius:12px; overflow:hidden; background:#0b1329; }
+  .imgbox img{ display:block; width:100%; height:min(45vh, 340px); object-fit:contain; background:#0b1329; }
+  .imgcap{ padding:8px 10px; color:var(--ink-d); font-size:.9rem; border-top:1px solid #1b2441; }
 
-  .details{ background:#0d152b; border:1px solid #1b2441; border-radius:12px; padding:8px 10px; }
-  .details summary{ cursor:pointer; color:var(--ink-d); font-size:.9rem; }
-  .desc p{ margin:.35em 0; font-size:.85rem; }
+  .details{ background:#0d152b; border:1px solid #1b2441; border-radius:12px; padding:10px 12px; }
+  .details summary{ cursor:pointer; color:var(--ink-d); }
+  .desc p{ margin:.4em 0; }
+  .tag{ display:inline-block; font-size:.82rem; color:#cfe1ff; background:#122045; padding:2px 8px; border-radius:999px; margin-right:8px; }
 
-  .dropzone{ border:1px dashed #3b4c7d; border-radius:12px; padding:12px; text-align:center; background:rgba(255,255,255,.02); }
+  .dropzone{ border:1px dashed #3b4c7d; border-radius:12px; padding:16px; text-align:center; background:rgba(255,255,255,.02); }
   .dropzone.dragover{ background:rgba(91,140,255,.12); border-color:var(--ac); }
 
   .footer{ color:#9fb0dd; font-size:.85rem; text-align:center; }
 
   /* Responsive */
   @media (max-width:900px){ .grid{ grid-template-columns:1fr; grid-template-areas:'aside' 'main'; } }
-  @media (max-width:760px){ header h1{font-size:18px} .wrap{padding:10px} .imgbox img{ height:min(28vh, 220px); } }
-  @media (max-width:520px){ .imgbox img{ height:min(24vh, 200px); } .btn,.file-label{ padding:10px 12px; border-radius:12px; } }
+  @media (max-width:760px){ .stats{ grid-template-columns:repeat(3,1fr); } .imgbox img{ height:min(40vh, 280px); } .input input{ font-size:16px; } }
+  @media (max-width:520px){
+    .q-core{ flex-direction:column; }
+    .input{ width:100%; display:grid; grid-template-columns:1fr; grid-template-rows:auto auto; row-gap:8px; padding:6px 10px; }
+    .input input{ font-size:16px; padding:8px 6px; line-height:1.25; }
+    .input button{ width:100%; }
+    .q-core .btn{ width:100%; }
+    .imgbox img{ height:min(38vh, 220px); }
+    .btn,.file-label{ padding:10px 12px; border-radius:14px; }
+  } .input{ width:100%; } .q-core .btn{ width:100%; } .imgbox img{ height:min(38vh, 220px); } .btn,.file-label{ padding:12px 14px; border-radius:14px; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>JSONデッキ対応・クイズ（v4）</h1>
+    <h1>JSONデッキ対応・クイズ（修正版 v3）</h1>
+    <div class="toolbar">
+      <label class="file-label" for="file">JSONをアップロード</label>
+      <input id="file" type="file" accept="application/json" />
+      <button class="btn secondary" id="btnSample">サンプル読込</button>
+      <button class="btn ghost" id="btnReset">進捗リセット</button>
+    </div>
   </header>
 
   <section class="card">
-    <div class="stats">
-      <div class="stat"><div class="n" id="stTotal">0</div><div class="label">総カード</div></div>
-      <div class="stat"><div class="n" id="stRemaining">0</div><div class="label">残り</div></div>
-      <div class="stat"><div class="n" id="stCorrect">0</div><div class="label">正解</div></div>
-      <div class="stat"><div class="n" id="stWrong">0</div><div class="label">再出題</div></div>
-      <div class="stat"><div class="n" id="stProgress">0%</div><div class="label">進捗</div></div>
-      <div class="stat"><div class="n" id="clearedCount">0</div><div class="label">クリア</div></div>
-      <div class="stat"><div class="n" id="totalCount">0</div><div class="label">全体</div></div>
-      <div style="flex:1"></div>
-      <div class="stat" style="display:flex; gap:6px; align-items:center;">
-        <span class="label">間隔</span>
-        <input type="number" id="reinsert" min="1" max="10" value="3" style="width:56px;background:#0e1630;color:var(--ink);border:1px solid var(--muted);border-radius:8px;padding:2px 6px;font-size:12px;">
-        <label class="label" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="showImage" checked>画像</label>
-        <label class="label" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="requireExact">完全一致</label>
-      </div>
+    <div class="topbar">
+      <div class="pill">クリア: <b id="clearedCount">0</b> / <span id="totalCount">0</span></div>
+      <div class="pill"><span>再出題間隔</span><input type="number" id="reinsert" min="1" max="10" value="3" style="width:64px"></div>
+      <label class="pill" style="gap:8px"><input type="checkbox" id="showImage" checked>画像を表示</label>
+      <label class="pill" style="gap:8px"><input type="checkbox" id="requireExact">完全一致</label>
+      <div style="align-self:center;color:var(--ink-d);font-size:.9rem">Enterで解答</div>
     </div>
-    <div style="margin-top:4px"><progress id="prog" max="100" value="0"></progress></div>
+    <div class="stats" style="margin-top:8px">
+      <div class="stat"><div class="n" id="stTotal">0</div><div>総カード</div></div>
+      <div class="stat"><div class="n" id="stRemaining">0</div><div>残り</div></div>
+      <div class="stat"><div class="n" id="stCorrect">0</div><div>正解</div></div>
+      <div class="stat"><div class="n" id="stWrong">0</div><div>再出題待ち</div></div>
+      <div class="stat"><div class="n" id="stProgress">0%</div><div>進捗</div></div>
+    </div>
+    <div style="margin-top:8px"><progress id="prog" max="100" value="0"></progress></div>
   </section>
 
   <div class="grid">
-    <aside class="card">
-      <h2 style="margin:.2em 0 .6em; font-size:18px">ビジュアル / 情報</h2>
-      <div class="imgbox" id="imgBox" style="display:none">
-        <img id="img" alt="関連画像" />
-        <div class="imgcap" id="imgCap"></div>
-      </div>
-      <details class="details" style="margin-top:10px">
-        <summary>要点（背景・影響・学術的価値）</summary>
-        <div class="desc" id="miniDesc"></div>
-      </details>
-      <details class="details" style="margin-top:8px">
-        <summary>比較の視点</summary>
-        <div class="desc" id="cmp"></div>
-      </details>
-    </aside>
-
     <section class="card">
-      <h2 id="qHeader" style="margin:.2em 0 .6em; font-size:18px">デッキ未読込</h2>
-      <p id="deckSub" style="color:var(--ink-d); margin:.1em 0 8px">下のボタンからJSONを読み込んでください。</p>
+      <h2 id="qHeader">デッキ未読込</h2>
+      <p id="deckSub" style="color:var(--ink-d)">上のボタンからJSONを読み込んでください。</p>
 
       <div id="quizArea" style="display:none">
         <div class="q-title">問題</div>
         <div class="hint" id="hintBox"></div>
-
-        <div class="input" style="margin-top:8px;">
-          <input id="answer" type="text" placeholder="ここに解答（用語）を入力" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
-        </div>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn" id="btnSubmit">解答</button>
+        <div class="q-core">
+          <div class="input" style="flex:1 1 420px">
+            <input id="answer" type="text" placeholder="用語（別名・読みも可）を入力" list="termsList" autocomplete="off"/>
+            <datalist id="termsList"></datalist>
+            <button class="btn" id="btnSubmit">解答</button>
+          </div>
           <button class="btn secondary" id="btnSkip" title="後で出題">スキップ</button>
           <button class="btn good" id="btnNext" style="display:none">次の問題へ</button>
         </div>
-
         <div id="feedback" class="feedback"></div>
-        <details id="detailsBox" class="details" style="display:none;margin-top:10px">
+        <details id="detailsBox" class="details" style="display:none;margin-top:12px">
           <summary>解説を表示</summary>
           <div class="desc" id="desc"></div>
         </details>
       </div>
 
       <div id="doneArea" style="display:none">
-        <h2 style="margin:.2em 0 .6em; font-size:18px">全問正解！</h2>
+        <h2>全問正解！</h2>
         <p style="color:var(--ink-d)">おつかれさま。デッキをシャッフルして最初から始められます。</p>
         <button class="btn good" id="btnRestart">もう一度</button>
       </div>
 
       <div class="dropzone" id="dropzone" style="margin-top:12px">ここにJSONをドラッグ＆ドロップできます</div>
     </section>
-  </div>
 
-  <!-- 下部ツールバー（アップロード等） -->
-  <div class="card" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center">
-    <label class="file-label" for="file">JSONをアップロード</label>
-    <input id="file" type="file" accept="application/json" />
-    <button class="btn secondary" id="btnSample">サンプル読込</button>
-    <button class="btn ghost" id="btnReset">進捗リセット</button>
+    <aside class="card">
+      <h2>ビジュアル / 情報</h2>
+      <div class="problem" id="problemBox" style="background:#0d152b;border:1px solid #1b2441;border-radius:10px;padding:8px 10px;margin-bottom:8px;"><b>問題：</b> <span id="problemText"></span></div>
+      <div class="imgbox" id="imgBox" style="display:none">
+        <div id="imgBadge" class="badge" style="position:absolute;top:6px;left:6px;background:#0e1630;border:1px solid #223057;padding:2px 6px;font-size:12px;border-radius:8px;color:#cfe1ff;opacity:.9;display:none"></div>
+        <img id="img" alt="関連画像" />
+        <div class="imgcap" id="imgCap" style="display:none"></div>
+      </div>
+      
+      
+    </aside>
   </div>
 
   <footer class="footer">あなたのテンプレート項目名に準拠。配列 or {cards:[...]} のどちらでも読込可。</footer>
@@ -174,10 +174,12 @@
   const el=(t,a={},c=[])=>{const e=document.createElement(t);for(const[k,v]of Object.entries(a)){if(k==='class')e.className=v;else if(k==='html')e.innerHTML=v;else e.setAttribute(k,v)}c.forEach(x=>e.appendChild(x));return e};
   const stTotal=$('#stTotal'), stRemaining=$('#stRemaining'), stCorrect=$('#stCorrect'), stWrong=$('#stWrong'), stProgress=$('#stProgress'), prog=$('#prog');
   const qHeader=$('#qHeader'), deckSub=$('#deckSub'), quizArea=$('#quizArea');
-  const answerInput=$('#answer');
+  const answerInput=$('#answer'), termsList=$('#termsList');
+  const problemText=$('#problemText');
+  const imgBadge=$('#imgBadge');
   const btnSubmit=$('#btnSubmit'), btnSkip=$('#btnSkip'), btnNext=$('#btnNext');
   const feedback=$('#feedback'), detailsBox=$('#detailsBox'), descBox=$('#desc'), hintBox=$('#hintBox');
-  const miniDesc=$('#miniDesc'), cmp=$('#cmp'), imgBox=$('#imgBox'), img=$('#img'), imgCap=$('#imgCap');
+  const imgBox=$('#imgBox'), img=$('#img'), imgCap=$('#imgCap');
   const btnRestart=$('#btnRestart');
   const reinsert=$('#reinsert'), showImage=$('#showImage'), requireExact=$('#requireExact');
   const clearedCount=$('#clearedCount'), totalCount=$('#totalCount');
@@ -203,16 +205,27 @@
   }
 
   function setDeck(data){
+    // 正規化
     state.deck = data.map((d,i)=>({ ...d, _id:i }));
     state.total = state.deck.length;
     state.correct = 0; state.wrong = 0; state.cleared.clear();
     state.queue = shuffle(state.deck.map(d=>d._id));
+
+    // datalist
+    termsList.innerHTML='';
+    for(const item of state.deck){
+      const forms=[item.term, ...(item.aliases||[])].filter(Boolean);
+      for(const f of forms){ termsList.appendChild(el('option',{value:f})) }
+    }
+
     nextQuestion();
   }
 
   function nextQuestion(){
+    // リセットUI
     feedback.style.display='none'; feedback.className='feedback'; feedback.textContent='';
     detailsBox.style.display='none'; detailsBox.open=false; descBox.innerHTML='';
+    const cmpObj = item.comparison || {};
     btnNext.style.display='none';
 
     if(state.queue.length===0){
@@ -227,38 +240,48 @@
     state.current = state.queue.shift();
     const item = state.deck.find(d=>d._id===state.current);
 
-    qHeader.textContent = 'この用語は？';
-    deckSub.textContent = '別名・読みも可（厳密判定は「完全一致」）';
+    qHeader.textContent = '';
+    deckSub.textContent = '';
+    answerInput.placeholder = '用語（別名・読みも可）を入力';
 
     // ヒント（最初から表示）
     if(item.hint){ hintBox.innerHTML = `<b>ヒント：</b> ${escapeHtml(item.hint)}`; hintBox.style.display=''; } else { hintBox.innerHTML=''; hintBox.style.display='none'; }
 
-    // 右パネル
-    miniDesc.innerHTML='';
-    if(item.background) miniDesc.appendChild(el('p',{html:`<span class="tag">背景</span>${escapeHtml(item.background)}`}));
-    if(item.impact)     miniDesc.appendChild(el('p',{html:`<span class="tag">影響</span>${escapeHtml(item.impact)}`}));
-    if(item.academic_value) miniDesc.appendChild(el('p',{html:`<span class="tag">学術的価値</span>${escapeHtml(item.academic_value)}`}));
-
-    cmp.innerHTML='';
-    if(item.comparison){
-      const {previous,contemporary,next} = item.comparison;
-      if(previous)     cmp.appendChild(el('p',{html:`<span class="tag">前代</span>${escapeHtml(previous)}`}));
-      if(contemporary) cmp.appendChild(el('p',{html:`<span class="tag">同時代</span>${escapeHtml(contemporary)}`}));
-      if(next)         cmp.appendChild(el('p',{html:`<span class="tag">次代</span>${escapeHtml(next)}`}));
-    }
+    // 問題文（旧ヒント）を画像上部へ
+    if(problemText){ problemText.textContent = item.hint || ''; }
+    hintBox.innerHTML=''; hintBox.style.display='none';
 
     // 画像（containで全体表示）
     if(showImage.checked && item.image && (item.image.commonsTitle || item.image.url)){
       const url = item.image.url || commonsUrl(item.image.commonsTitle);
-      if(url){ img.src=url; img.alt=item.image.note||'関連画像'; imgCap.textContent = item.image.note || String(item.image.commonsTitle||'').replace(/^File:/,''); imgBox.style.display='block'; }
-      else { imgBox.style.display='none'; }
-    } else { imgBox.style.display='none'; }
+      if(url){
+        img.src=url; img.alt=item.image.note||'関連画像';
+        if(imgCap){ imgCap.style.display='none'; }
+        if(imgBadge){
+          let label='画像';
+          const k=item.image.kind ? String(item.image.kind).toLowerCase() : '';
+          if(k==='actual' || k==='photo' || k==='artifact'){ label='写真'; }
+          else if(k){ label='イメージ'; }
+          imgBadge.textContent=label; imgBadge.style.display='block';
+        }
+        imgBox.style.display='block';
+      } else { imgBox.style.display='none'; if(imgBadge) imgBadge.style.display='none'; }
+    } else { imgBox.style.display='none'; if(imgBadge) imgBadge.style.display='none'; }
 
-    // 解説
+    // 解説（詳細）
     descBox.innerHTML='';
     const mkP=(label,text)=> text? el('p',{html:`<span class="tag">${label}</span>${escapeHtml(text)}`}):null;
     [['背景',item.background],['影響',item.impact],['学術的価値',item.academic_value]].forEach(([lb,tx])=>{ if(tx) descBox.appendChild(mkP(lb,tx)); });
+    // 統合された解説（要点+比較）で上書き
+    ;(function(){
+      const mkP=(label,text)=> text? el('p',{html:`<span class=\"tag\">${label}</span>${escapeHtml(text)}`}):null;
+      const cmpObj = item.comparison || {};
+      const blocks = [['背景',item.background],['影響',item.impact],['学術的価値',item.academic_value],['前代',cmpObj.previous],['同時代',cmpObj.contemporary],['次代',cmpObj.next]];
+      descBox.innerHTML='';
+      blocks.forEach(([lb,tx])=>{ if(tx) descBox.appendChild(mkP(lb,tx)); });
+    })();
 
+    // 入力
     answerInput.value='';
     quizArea.style.display='';
     $('#doneArea').style.display='none';
@@ -328,7 +351,8 @@
   // ====== File load & DnD ======
   const fileInput=$('#file');
   fileInput.addEventListener('change', onFile);
-  async function onFile(e){ const f=e.target.files?.[0]; if(!f) return; await loadFromFile(f); fileInput.value=''; }
+  async function onFile(e){
+    const f=e.target.files?.[0]; if(!f) return; await loadFromFile(f); fileInput.value=''; }
 
   const dropzone=$('#dropzone');
   ;['dragenter','dragover'].forEach(evt=> dropzone.addEventListener(evt,(ev)=>{ ev.preventDefault(); dropzone.classList.add('dragover'); }));
