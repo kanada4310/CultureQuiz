@@ -115,8 +115,7 @@
         <div class="hint" id="hintBox"></div>
         <div class="q-core">
           <div class="input" style="flex:1 1 420px">
-            <input id="answer" type="text" placeholder="用語（別名・読みも可）を入力" list="termsList" autocomplete="off"/>
-            <datalist id="termsList"></datalist>
+            <input id="answer" type="text" placeholder="用語（別名・読みも可）を入力" autocomplete="off"/>
             <button class="btn" id="btnSubmit">解答</button>
           </div>
           <button class="btn secondary" id="btnSkip" title="後で出題">スキップ</button>
@@ -174,7 +173,7 @@
   const el=(t,a={},c=[])=>{const e=document.createElement(t);for(const[k,v]of Object.entries(a)){if(k==='class')e.className=v;else if(k==='html')e.innerHTML=v;else e.setAttribute(k,v)}c.forEach(x=>e.appendChild(x));return e};
   const stTotal=$('#stTotal'), stRemaining=$('#stRemaining'), stCorrect=$('#stCorrect'), stWrong=$('#stWrong'), stProgress=$('#stProgress'), prog=$('#prog');
   const qHeader=$('#qHeader'), deckSub=$('#deckSub'), quizArea=$('#quizArea');
-  const answerInput=$('#answer'), termsList=$('#termsList');
+  const answerInput=$('#answer');
   const problemText=$('#problemText');
   const imgBadge=$('#imgBadge');
   const btnSubmit=$('#btnSubmit'), btnSkip=$('#btnSkip'), btnNext=$('#btnNext');
@@ -211,12 +210,7 @@
     state.correct = 0; state.wrong = 0; state.cleared.clear();
     state.queue = shuffle(state.deck.map(d=>d._id));
 
-    // datalist
-    termsList.innerHTML='';
-    for(const item of state.deck){
-      const forms=[item.term, ...(item.aliases||[])].filter(Boolean);
-      for(const f of forms){ termsList.appendChild(el('option',{value:f})) }
-    }
+    
 
     nextQuestion();
   }
@@ -225,7 +219,6 @@
     // リセットUI
     feedback.style.display='none'; feedback.className='feedback'; feedback.textContent='';
     detailsBox.style.display='none'; detailsBox.open=false; descBox.innerHTML='';
-    const cmpObj = item.comparison || {};
     btnNext.style.display='none';
 
     if(state.queue.length===0){
