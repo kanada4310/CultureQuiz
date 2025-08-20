@@ -31,8 +31,8 @@
   .grid > aside{ grid-area: aside; }
   .grid > section{ grid-area: main; }
 
-  .imgbox{ position:relative; border:1px solid #1b2441; border-radius:12px; overflow:hidden; background:#0b1329; }
-  .imgbox img{ display:block; width:100%; height:min(22vh, 180px); object-fit:contain; background:#0b1329; }
+  .imgbox{ position:relative; border:1px solid #1b2441; border-radius:12px; overflow:hidden; background:#0b1329; aspect-ratio: 4 / 3; }
+  .imgbox img{ display:block; width:100%; height:100%; object-fit:contain; background:#0b1329; }
   .imgbadge{ position:absolute; top:6px; left:6px; background:#0e1630cc; border:1px solid var(--muted); color:var(--ink-d); font-size:10px; padding:2px 6px; border-radius:999px; }
   .problem{ background:#0d162f; border:1px solid #2a3b6b; border-radius:9px; padding:6px 8px; color:var(--ink-d); margin:0 0 8px; font-size:.9rem; }
   .problem b{ color:var(--ink); }
@@ -67,6 +67,9 @@
   @media (max-width:900px){ .grid{ grid-template-columns:1fr; grid-template-areas:'aside' 'main'; } }
   @media (max-width:760px){ header h1{font-size:16px} .wrap{padding:8px} .imgbox img{ height:min(20vh, 160px); } }
   @media (max-width:520px){ .imgbox img{ height:min(18vh, 140px); } .btn,.file-label{ padding:9px 11px; border-radius:10px; } }
+.pimg{ display:flex; gap:10px; align-items:flex-start; }
+.pimg .probcol{ flex:1; min-width:0; }
+.pimg .imgcol{ flex:0 0 clamp(120px, 33.33vw, 380px); max-width:clamp(120px, 33.33vw, 380px); }
 </style>
 </head>
 <body>
@@ -97,10 +100,16 @@
 
   <div class="grid">
     <aside class="card">
-      <div class="problem" id="problemBox" style="display:none"><b>問題：</b> <span id="problemText"></span></div>
-      <div class="imgbox" id="imgBox" style="display:none">
-        <div class="imgbadge" id="imgBadge" style="display:none">画像</div>
-        <img id="img" alt="関連画像" />
+      <div class="pimg">
+        <div class="probcol">
+          <div class="problem" id="problemBox" style="display:none"><b>問題：</b> <span id="problemText"></span></div>
+        </div>
+        <div class="imgcol">
+          <div class="imgbox" id="imgBox" style="display:none">
+            <div class="imgbadge" id="imgBadge" style="display:none">画像</div>
+            <img id="img" alt="関連画像" />
+          </div>
+        </div>
       </div>
     </aside>
 
