@@ -266,7 +266,7 @@
 
     // 画像
     if(showImage.checked && item.image && (item.image.commonsTitle||item.image.url)){
-      const url=item.image.url || commonsUrl(item.image.commonsTitle);
+      const url=commonsUrl(item.image.commonsTitle);
       if(url){
         img.src=url; img.alt=item.image.note||'関連画像';
         imgBox.style.display='block';
